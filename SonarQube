@@ -3,6 +3,7 @@ pipeline {
     parameters {
         booleanParam(name: 'SKIP_CHECKOUT', defaultValue: false, description: 'Skip git checkout stage')
         booleanParam(name: 'SKIP_BUILD', defaultValue: false, description: 'Skip maven build stage')
+        booleanParam(name: 'SKIP_SONAR_ANALYSIS', defaultValue: false, description: 'Skip SonarQube analysis stage')
         // Add more parameters for other stages if needed
     }
     stages {
@@ -11,7 +12,7 @@ pipeline {
                 expression { !params.SKIP_CHECKOUT }
             }
             steps {
-                // Git checkout steps
+                git branch: 'main', changelog: false, poll: false, url: 'https://github.com/sivaBalu1997/Petclinic.git'
             }
         }
         stage('Maven Build') {
@@ -19,9 +20,32 @@ pipeline {
                 expression { !params.SKIP_BUILD }
             }
             steps {
-                // Maven build steps
+                script {
+                    def mvnHome = tool name: 'maven3', type: 'maven'
+                    sh "${mvnHome}/bin/mvn clean package"
+                    sh 'mv target/*.war target/petapp.war'
+                }
+            }
+        }
+        stage('Static code analysis') {
+            when {
+                expression { !params.SKIP_SONAR_ANALYSIS }
+            }
+            steps {
+                script {
+                    def mvnHome = tool name: 'maven3', type: 'maven'
+                    withSonarQubeEnv('sonar') {
+                        sh "${mvnHome}/bin/mvn sonar:sonar"
+                    }
+                }
             }
         }
         // Add more stages here
     }
+    //post {
+    //    always {
+    //        cleanWs() // Cleanup workspace
+    //    }
+    //}
 }
+
