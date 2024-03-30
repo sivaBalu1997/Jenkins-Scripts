@@ -1,0 +1,27 @@
+pipeline {
+    agent any
+    parameters {
+        booleanParam(name: 'SKIP_CHECKOUT', defaultValue: false, description: 'Skip git checkout stage')
+        booleanParam(name: 'SKIP_BUILD', defaultValue: false, description: 'Skip maven build stage')
+        // Add more parameters for other stages if needed
+    }
+    stages {
+        stage('Git Checkout') {
+            when {
+                expression { !params.SKIP_CHECKOUT }
+            }
+            steps {
+                // Git checkout steps
+            }
+        }
+        stage('Maven Build') {
+            when {
+                expression { !params.SKIP_BUILD }
+            }
+            steps {
+                // Maven build steps
+            }
+        }
+        // Add more stages here
+    }
+}
